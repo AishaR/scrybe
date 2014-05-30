@@ -1,0 +1,52 @@
+<html>
+<head>
+	<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		$(function (){
+			var iosocket = io.connect('http://localhost:8080');
+			
+			iosocket.on('connect', function() {
+				$('#incomingChatMessages').append($('<li>Connected</li>'));
+				iosocket.emit('newUser', prompt('what is your name'));
+				  
+				iosocket.on('contacts', function(allContacts){
+					var contactList = '';
+					for(i=0; i < allContacts.length; i++){
+						contactList += allContacts[i] +'<br>';
+					}
+					$('#contacts').html(contactList);
+				});
+				
+				iosocket.on('message', function(message) {
+					$('#incomingChatMessages').append($('<li></li>').text(message));
+				});
+				iosocket.on('disconnect', function() {
+					$('#incomingChatMessages').append('<li>Disconnected</li>');
+				});
+			});	
+			
+			$('#outgoingChatMessage').keypress(function(event) {
+				if(event.which == 13){
+					event.preventDefault();
+					iosocket.send($('#outgoingChatMessage').val());
+					$('#incomingChatMessages').append($('<li></li>').text($('#outgoingChatMessage').val()));
+					$('#outgoingChatMessage').val('');
+					}
+				});
+			});
+		
+	
+	</script>
+	
+	
+</head>
+<body>
+<div> Incoming Chat: <ul id="incomingChatMessages"></ul>
+
+<input type="text" id="outgoingChatMessage">
+</div>
+<div id="contacts" style="float: right; padding-top: 300px;"> </div>
+
+</body>
+</html>
